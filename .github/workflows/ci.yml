@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]  # Trigger the workflow on every push to the main branch
+  pull_request:
+    branches: [main]  # Trigger the workflow on every pull request to the main branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']  # Specify multiple Python versions
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}  # Use each Python version in the matrix
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Install all dependencies
+
+    - name: Run tests with coverage
+      run: |
+        pip install pytest-cov  # Install pytest-cov for test coverage
+        pytest --cov=calculator tests/  # Run tests with coverage (replace 'calculator' with your module name)
+
+    - name: Upload coverage report (optional)
+      if: always()
+      run: |
+        # Generates an XML coverage report as 'coverage.xml' for optional upload
+        pytest --cov=calculator --cov-report=xml
